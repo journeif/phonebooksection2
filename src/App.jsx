@@ -1,56 +1,73 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import Note from './components/Note'
 
 const App = () => {
-  const [notes, setNotes] = useState([])
-  const [newNote, setNewNote] = useState('')
-  const [showAll, setShowAll] = useState(true)
+  const [persons, setPersons] = useState([])
+  const [newName, setNewName] = useState('')
+  const [newNumber, setNewNumber] = useState('')
 
+  // fetch initial data from json-server
   useEffect(() => {
-    console.log('effect')
-    axios.get('http://localhost:3001/notes').then((response) => {
-      console.log('promise fulfilled')
-      setNotes(response.data)
+    console.log('Fetching persons...')
+    axios.get('http://localhost:3001/persons').then((response) => {
+      console.log('Data received')
+      setPersons(response.data)
     })
   }, [])
-  console.log('render', notes.length, 'notes')
 
-  const addNote = (event) => {
+  const addPerson = (event) => {
     event.preventDefault()
-    const noteObject = {
-      content: newNote,
-      important: Math.random() > 0.5,
-      id: String(notes.length + 1),
+
+    const nameExists = persons.some(
+      (p) => p.name.toLowerCase() === newName.toLowerCase()
+    )
+
+    if (nameExists) {
+      alert(`${newName} is already added to phonebook`)
+      return
     }
 
-    setNotes(notes.concat(noteObject))
-    setNewNote('')
-  }
+    const personObject = {
+      name: newName,
+      number: newNumber,
+      id: String(persons.length + 1),
+    }
 
-  const handleNoteChange = (event) => {
-    setNewNote(event.target.value)
+    setPersons(persons.concat(personObject))
+    setNewName('')
+    setNewNumber('')
   }
-
-  const notesToShow = showAll ? notes : notes.filter((note) => note.important)
 
   return (
     <div>
-      <h1>Notes</h1>
-      <div>
-        <button onClick={() => setShowAll(!showAll)}>
-          show {showAll ? 'important' : 'all'}
-        </button>
-      </div>
+      <h1>Phonebook</h1>
+
+      <form onSubmit={addPerson}>
+        <div>
+          name:{' '}
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+          />
+        </div>
+        <div>
+          number:{' '}
+          <input
+            value={newNumber}
+            onChange={(e) => setNewNumber(e.target.value)}
+          />
+        </div>
+        <button type="submit">add</button>
+      </form>
+
+      <h2>Numbers</h2>
       <ul>
-        {notesToShow.map((note) => (
-          <Note key={note.id} note={note} />
+        {persons.map((person) => (
+          <li key={person.id}>
+            {person.name} {person.number}
+          </li>
         ))}
       </ul>
-      <form onSubmit={addNote}>
-        <input value={newNote} onChange={handleNoteChange} />
-        <button type="submit">save</button>
-      </form>
     </div>
   )
 }
